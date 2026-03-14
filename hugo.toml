@@ -8,7 +8,7 @@ theme = "PaperMod"
 [params]
   env = "production"
   description = "Software engineering, automation, and building with AI"
-  author = "Philip Selamy"
+  author = "Patrick Selamy"
   showReadingTime = true
   showShareButtons = true
   showPostNavLinks = true
@@ -20,8 +20,12 @@ theme = "PaperMod"
   disableThemeToggle = false
 
   [params.homeInfoParams]
-    Title = "Hey there"
-    Content = "Software engineer. Writing about automation, AI-assisted development, and building systems that run themselves."
+    Title = "Patrick Selamy"
+    Content = "Software engineer in New York. Writing about AI-assisted development, autonomous systems, and the infrastructure that makes them work."
+
+  [[params.socialIcons]]
+    name = "linkedin"
+    url = "https://www.linkedin.com/in/patrickselamy/"
 
   [[params.socialIcons]]
     name = "github"
