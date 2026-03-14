@@ -1,0 +1,78 @@
+name: Content Quality Gate
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "content/**"
+
+permissions:
+  contents: read
+
+jobs:
+  structural:
+    name: "Layer 1: Structural"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli@0.43.0
+
+      - name: Lint markdown
+        run: markdownlint 'content/**/*.md' --config .markdownlint.json
+
+      - name: Frontmatter validation
+        run: bash scripts/frontmatter-check.sh
+
+      - name: Word count check
+        run: |
+          for f in $(git diff --name-only --diff-filter=ACMR origin/main -- 'content/posts/**/*.md'); do
+            words=$(sed '/^---$/,/^---$/d' "$f" | wc -w)
+            echo "$f: $words words"
+            if [ "$words" -lt 300 ]; then
+              echo "::error file=$f::Post has only $words words (minimum 300 for short posts)"
+              exit 1
+            fi
+          done
+
+  content-safety:
+    name: "Layer 2: Content Safety"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Privacy scanner
+        run: bash scripts/privacy-scanner.sh
+
+  writing-quality:
+    name: "Layer 3: Writing Quality"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vale
+        run: |
+          wget -qO- https://github.com/errata-ai/vale/releases/download/v3.9.5/vale_3.9.5_Linux_64-bit.tar.gz | tar xz -C /usr/local/bin vale
+
+      - name: Run Vale
+        run: vale content/posts/ || true
+
+  build-check:
+    name: "Layer 5: Build Check"
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.147.5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install Hugo
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb
+          sudo dpkg -i ${{ runner.temp }}/hugo.deb
+
+      - name: Build
+        run: hugo --gc --minify
