@@ -1,181 +1,235 @@
 ---
-title: "The Dispatch Pattern"
-date: 2026-04-01T10:00:00-04:00
+title: "The Dispatch Pattern: How I Shipped 25 PRs in One Night Without Touching the Code"
+date: 2026-04-01
 slug: "the-dispatch-pattern"
-description: "A pattern for delegating self-contained units of work to autonomous AI coding agents — and the infrastructure that makes it reliable."
-tags: ["ai", "automation", "architecture", "agents"]
-showToc: true
-draft: false
+description: "A practical pattern for running parallel coding agents across isolated environments, with isolated workspaces, failure detection, and guardrails that make multi-project execution usable."
+tags: [ai agents, developer tools, automation, claude code, git]
 ---
 
-Most people using AI coding assistants work interactively. You type a prompt, read the output, adjust, repeat. It works, but it doesn't scale. You're still the bottleneck — every task waits for your attention.
+I kept hitting the same ceiling.
 
-The dispatch pattern changes this. Instead of conversing with an agent, you *dispatch* work to it: hand off a well-defined task, let the agent run autonomously, and collect the result as a pull request. You become a reviewer instead of a typist.
+One repo was manageable. Two was annoying. Three or four active codebases meant my time disappeared into context switching. Open a branch. restate the task. wait for CI. switch repos. lose the thread. repeat.
 
-This post covers the pattern, the infrastructure it requires, and the failure modes I've run into while building it out.
+So I stopped trying to code faster and built a dispatch layer instead.
 
-## What the dispatch pattern looks like
+The core idea is simple: one orchestrator assigns work, isolated coding agents execute it in parallel, and the system treats failures as normal operating conditions.
 
-The core idea is simple. You define a task as a structured specification — a JSON file, a ticket, a PRD — and hand it to an autonomous agent loop. The agent reads the spec, does the work, opens a PR, and stops. You review and merge.
+That pattern let me ship roughly 25 PRs in a single evening session across multiple projects. I did not write the implementation code by hand. I wrote prompts, set constraints, watched the failure modes, and fixed the system until it became usable.
 
-A minimal dispatch has three components:
+This post is the pattern that emerged.
 
-1. **A task spec** that defines what needs to be done and how to verify it
-2. **An agent loop** that reads the spec, executes, and iterates until acceptance criteria are met
-3. **A PR boundary** that captures the result and feeds it into your normal review workflow
+## the problem was not code generation
 
-The agent loop is the interesting part. Unlike a single-shot prompt, the loop lets the agent run quality checks, fix its own mistakes, and iterate toward a passing state. It's closer to how a developer actually works: write code, run tests, fix what's broken, repeat.
+Most agent demos break on the wrong bottleneck.
 
-```text
-┌─────────────┐     ┌──────────────────────────────────┐     ┌────────────┐
-│  Task Spec  │────▶│  Agent Loop                      │────▶│  Pull      │
-│  (PRD/JSON) │     │  read spec → implement → verify  │     │  Request   │
-│             │     │       ▲            │              │     │            │
-└─────────────┘     │       └────────────┘              │     └────────────┘
-                    │       (iterate until pass)        │
-                    └──────────────────────────────────┘
-```
+The hard part is not getting a model to write a patch. The hard part is running many patches, across many repos, without credential leaks, branch collisions, duplicate PRs, or silent crashes.
 
-## Why dispatch over interactive use
+If an agent can run shell commands, then orchestration becomes a systems problem:
 
-Interactive AI coding is useful. I still use it for exploration, debugging, and one-off tasks. But dispatch is better for a specific class of work:
+- identity isolation
 
-**Parallelism.** You can dispatch multiple tasks at once. While one agent writes a blog post, another refactors a module, and a third adds test coverage. Your throughput multiplies without multiplying your effort.
+- repo isolation
 
-**Consistency.** A task spec with explicit acceptance criteria produces more predictable results than a freehand conversation. The spec becomes documentation of what you wanted and the PR shows what you got.
+- concurrency control
 
-**Asynchronous workflow.** You don't need to babysit the agent. Dispatch a task, do something else, come back to a PR ready for review. This is especially valuable for tasks that are well-defined but tedious — the kind of work that drains your energy but doesn't actually need your judgment until the review stage.
+- crash detection
 
-**Auditability.** Every dispatched task has a spec, a branch, and a PR. You can trace what was requested, what was produced, and what was reviewed. That trail matters when you're moving fast.
+- deduplication
 
-## The task spec
+- clean handoff between planner and executor
 
-The quality of your dispatch depends almost entirely on the quality of your task spec. A vague spec produces vague work. A precise spec with testable acceptance criteria produces code you can merge with confidence.
+That is the dispatch pattern.
 
-A good task spec includes:
+## the architecture
 
-- **What to build**, described concretely enough that there's no ambiguity about when it's done
-- **Acceptance criteria** that the agent can verify programmatically — tests that pass, linters that clear, builds that succeed
-- **Boundaries** on what the agent should and shouldn't touch
+I ended up with five pieces.
 
-Here's a simplified example:
+### 1. one linux user per trust boundary
 
-```json
-{
-  "description": "Add input validation to the signup endpoint",
-  "acceptanceCriteria": [
-    "Email field rejects invalid formats and returns 422",
-    "Password field enforces minimum 8 characters",
-    "All new validation paths have unit tests",
-    "Existing tests still pass"
-  ],
-  "constraints": [
-    "Only modify files in src/api/signup/",
-    "Do not change the database schema"
-  ]
-}
-```
+Each project boundary gets its own Linux user.
 
-The acceptance criteria are the key. They give the agent loop its termination condition: keep iterating until all criteria pass. Without them, the agent either stops too early or wanders.
+That user has its own Git config, tokens, SSH setup, and local checkout. The orchestrator does not hold project credentials directly. It dispatches work into the target user context.
 
-## The agent loop
+This matters for the same reason role separation matters anywhere else: if one task goes weird, the blast radius stays local.
 
-The loop reads the spec, plans an approach, implements it, and then runs verification. If verification fails, it reads the errors, adjusts, and tries again. Each iteration is a chance to self-correct.
+I also use SSH restrictions aggressively. OpenSSH supports forced commands and source restrictions in , which is exactly the kind of primitive you want when an agent is allowed to operate through a proxy. The official docs are worth reading if you are building anything similar: <https://man.openbsd.org/sshd#AUTHORIZED_KEYS_FILE_FORMAT>
 
-The loop structure looks roughly like this:
+### 2. one workspace per task
 
-```text
-1. Read task spec
-2. Check current state (git log, existing code)
-3. Implement changes for the highest-priority incomplete criterion
-4. Run quality checks (tests, linters, build)
-5. If checks fail → read errors, fix, go to 4
-6. If checks pass → mark criterion complete, go to 3
-7. When all criteria pass → open PR, stop
-```
+Parallel agents cannot safely share a working directory.
 
-A few design decisions matter here:
+Every dispatched task gets its own isolated workspace. That gives each run an isolated filesystem view with a dedicated branch, while still sharing the underlying repository objects.
 
-**One criterion at a time.** Having the agent tackle criteria sequentially reduces the blast radius of mistakes. If it breaks something, the error is localized to the current criterion.
+This is one of the highest leverage parts of the system. Without it, parallel execution turns into branch contention and dirty-workspace cleanup.
 
-**Checkpointing.** The agent should commit after completing each criterion. This gives you a clean git history and lets the agent resume if it gets interrupted. Context windows are finite — if the agent restarts, it can read git log and a progress file to understand what's already done.
+Git workspaces are built for this use case and are much better than trying to fake isolation with repeated clone-and-delete loops: <https://git-scm.com/docs/git->
 
-**Bounded iterations.** Set a maximum iteration count. An agent stuck in an infinite fix loop is worse than one that stops and says "I got stuck here." The progress file should capture what went wrong so the next attempt starts with more context.
+### 3. prompt to file, not prompt through five shells
 
-## Infrastructure requirements
+At first I tried to pass prompts through nested shells.
 
-The dispatch pattern needs more infrastructure than interactive use. Here's what I've found necessary:
+SSH into a host. start tmux. invoke a shell. pass a multi-line prompt. include YAML or JSON. pray.
 
-### Branch isolation
+That path is a quoting trap.
 
-Every dispatch gets its own branch. I use git worktrees so the agent operates on an isolated copy of the repo while the main checkout stays clean. This lets multiple dispatches run concurrently without stepping on each other.
+The fix was boring and effective: write the prompt to a file, then launch the agent against that file.
 
-```bash
-git worktree add .worktrees/feature-name -b feature-branch main
-```
+That removed a whole class of breakage:
 
-### Quality gates
+- shell escaping bugs
 
-Automated quality gates are essential. The agent needs fast, deterministic signals about whether its work is correct. That means:
+- broken heredocs
 
-- Tests that cover the acceptance criteria
-- Linters configured with clear rules
-- A build step that catches compilation or rendering errors
-- CI that runs on every push to the branch
+- prompts mangled by guardrails
 
-Without these gates, you're relying on the agent's self-assessment, which is unreliable. The agent needs external verification.
+- impossible debugging when a single quote disappears somewhere in the stack
 
-### PR as the integration point
+If your agent runner is more than one shell hop away from the caller, prompt-to-file should probably be your default.
 
-The pull request is where dispatch meets your existing workflow. The agent creates the PR, CI runs the quality gate, and you review the diff. This keeps humans in the loop at the right moment — after the tedious work is done but before anything merges to main.
+### 4. a loop that assumes tasks will fail
 
-Auto-merge with required CI checks works well here. If CI passes and the PR looks good, you approve once and it merges on green. No babysitting.
+Headless agent execution is the primitive. Anthropic documents the non-interactive Claude Code flow directly: <https://docs.anthropic.com/en/docs/claude-code/cli-usage>
 
-## Failure modes
+But one call is not enough.
 
-I've watched enough dispatched tasks fail to have a taxonomy:
+Real work stalls. tools crash. CI flakes. a task gets 80 percent done and needs another pass with better context.
 
-**Underspecified tasks.** If the spec is vague, the agent will produce something that technically satisfies the words but misses the intent. "Add a blog post about X" without guidance on tone, length, audience, or structure produces a generic post. The fix is always the same: make the spec more explicit.
+So each task runs inside a simple loop:
 
-**Missing quality gates.** If the agent can't verify its work programmatically, it'll declare victory too early. I've seen agents produce code that looks correct in the diff but fails at runtime because there were no tests to catch the error. Add tests before dispatching, not after.
+1. create isolated task context
 
-**Context window exhaustion.** Long tasks can exhaust the agent's context window. Without checkpointing, the agent loses track of what it's done and starts repeating or contradicting itself. Progress files and git commits as checkpoints mitigate this — the agent reads its own trail to recover state.
+2. run the coding agent
 
-**Scope creep.** Agents, like developers, will sometimes "improve" things you didn't ask them to touch. Explicit constraints in the spec help, but you still need to review the diff carefully. A dispatch is not a license to skip review.
+3. inspect output and repo state
 
-**Cascading failures.** If the agent's first implementation attempt creates a mess, subsequent iterations may compound the mess instead of fixing it. Bounded iteration counts and clean checkpoints help — sometimes the best move is to reset and try a fresh approach.
+4. stop early if the success markers are there
 
-## When to dispatch vs. when to stay interactive
+5. otherwise feed back the new state and iterate
 
-Not every task benefits from dispatch. Here's my rough heuristic:
+That loop matters more than the model choice. Good orchestration beats one-shot prompting.
 
-**Dispatch when:**
+### 5. a scheduler that fills open slots
 
-- The task is well-defined with clear completion criteria
-- You can verify the result with automated checks
-- The work is tedious but not ambiguous
-- You have multiple such tasks and want parallelism
+Parallelism should be controlled, not accidental.
 
-**Stay interactive when:**
+I use a slot-based model. Each user has a maximum concurrency setting. The dispatcher looks for open slots and fills them. If a task crashes, the slot becomes available again.
 
-- You're exploring a problem space and don't know what you want yet
-- The task requires frequent judgment calls that depend on taste
-- You need to iterate on the approach itself, not just the implementation
-- The cost of a wrong result is high and hard to detect in review
+The important part is not the exact scheduler. The important part is making concurrency explicit.
 
-The dispatch pattern works best when you've already made the hard decisions — what to build, how to structure it, what quality bar to hit — and you're delegating the execution.
+If you do not do that, you do not have a system. You have a pile of background processes.
 
-## What I'm building toward
+## what actually made it work
 
-The dispatch pattern is a step toward a broader system where I can describe work at a higher level and have it decomposed, dispatched, and assembled automatically. The pieces are:
+The first version was fragile. The useful version came from fixing a few recurring failures.
 
-- A **planner** that breaks large tasks into dispatchable units
-- A **dispatcher** that assigns each unit to an agent loop with the right context
-- A **shepherd** that monitors running dispatches, handles failures, and merges results
-- A **quality gate** that verifies the integrated result, not just individual pieces
+### duplicate PRs
 
-I'm not there yet. Right now, I'm writing task specs by hand and dispatching one at a time. But each piece of infrastructure I add — worktree isolation, structured specs, automated quality gates — brings the full system closer.
+A looped agent will happily create a second PR if you ask it to continue a task without telling it a PR already exists.
 
-The most important thing I've learned is that the pattern only works when the infrastructure is honest. Flaky tests, missing linters, vague specs — these all degrade dispatch reliability. The agent is only as good as the signals you give it.
+So I added a guard: before PR creation, check task state for an existing PR artifact and block duplicates.
 
-If you're using AI coding tools interactively and hitting a ceiling on throughput, try dispatching a single well-defined task. Write a clear spec, set up a quality gate, and let the agent run. Review the PR. You'll quickly learn where your infrastructure gaps are — and closing those gaps makes everything else better too.
+This sounds small. It is not. Duplicate PRs destroy trust in the whole setup.
+
+### silent crashes
+
+Some tasks looked alive in state files but the underlying session had already died.
+
+The fix was to cross-check process reality against recorded status. If the session is gone but the task claims it is still running, mark it crashed and free the slot.
+
+Any long-running agent system needs this. State files lie. Processes tell the truth.
+
+### missing setup
+
+A dispatch is worthless if the target environment is missing the repo, branch setup, or login context.
+
+So I added pre-flight checks before scheduling work:
+
+- repo exists
+
+- workspace can be created
+
+- login is valid
+
+- required tools are available
+
+This prevented a lot of fake starts.
+
+### shell environment drift
+
+Non-interactive shells do not always load the same environment as an interactive login.
+
+That broke auth in subtle ways.
+
+The fix was to standardize command execution so the environment is loaded consistently before the agent starts.
+
+Again, boring fix. High leverage.
+
+## results worth caring about
+
+The dispatch pattern became interesting once it stopped being a toy.
+
+The strongest numbers I have from the logged sessions:
+
+- roughly 25 PRs merged in one evening session across three active project lanes
+
+- more than 50 PRs merged across the tracked autonomous sessions
+
+- up to 11 parallel agent sessions running at once
+
+Those numbers are not a claim of full autonomy.
+
+I still had to orchestrate the work, inspect failures, and improve the system between runs. That is the point. Useful agent systems are not magic. They are operational.
+
+## what this changed for me
+
+The biggest shift was mental.
+
+I stopped thinking of coding agents as pair programmers and started treating them like workers in a constrained execution system.
+
+That changes how you build around them.
+
+You care less about perfect prompts and more about:
+
+- what trust boundary this task should run inside
+
+- how to isolate filesystem state
+
+- how to detect failure early
+
+- how to retry without duplication
+
+- how to make every run inspectable after the fact
+
+That framing has held up better than any model-specific trick.
+
+## what I would build first if I were starting over
+
+If you want to try this pattern, start here:
+
+1. isolate credentials by environment or user
+
+2. use isolated workspaces for parallel repo tasks
+
+3. write prompts to files
+
+4. make task state explicit and inspectable
+
+5. add duplicate-action guards before you add more autonomy
+
+6. detect crashed sessions before you optimize throughput
+
+Do those six things and you have the beginnings of a real system.
+
+Skip them and you are mostly running demos with shell access.
+
+## closing
+
+The interesting part of agent engineering is shifting away from chat and toward operations.
+
+Once an agent can use a shell, your problems start to look like scheduler design, environment isolation, and failure recovery.
+
+That is why I think the dispatch pattern matters.
+
+Not because it makes coding disappear. It does not.
+
+Because it turns agent work into something you can route, constrain, parallelize, inspect, and improve.
