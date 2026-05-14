@@ -24,6 +24,10 @@ theme = "PaperMod"
     Content = "Software engineer in New York. Writing about AI-assisted development, autonomous systems, and the infrastructure that makes them work."
 
   [[params.socialIcons]]
+    name = "email"
+    url = "mailto:contact@selamy.dev"
+
+  [[params.socialIcons]]
     name = "linkedin"
     url = "https://www.linkedin.com/in/patrickselamy/"
 
