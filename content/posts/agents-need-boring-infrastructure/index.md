@@ -1,6 +1,6 @@
 ---
 title: "Agents Need Boring Infrastructure"
-date: 2026-05-14T12:00:00-04:00
+date: 2026-05-13T21:20:00-04:00
 slug: "agents-need-boring-infrastructure"
 description: "The hard part of agent systems is not getting a model to take an action. It is making that action safe, repeatable, inspectable, and useful over time."
 tags: ["AI agents", "infrastructure", "software engineering", "automation"]
