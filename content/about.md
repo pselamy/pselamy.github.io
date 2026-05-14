@@ -13,3 +13,5 @@ By day I work on large-scale infrastructure. Outside of work, I build autonomous
 This site is where I write about what I'm learning along the way: prompt engineering for real codebases, orchestrating fleets of AI agents, building quality gates that let machines merge their own code, and the infrastructure patterns that hold it all together.
 
 The site itself is part of the experiment — content here is drafted, reviewed, and published through an autonomous pipeline.
+
+You can reach me at [contact@selamy.dev](mailto:contact@selamy.dev).
