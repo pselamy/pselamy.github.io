@@ -8,154 +8,223 @@ showToc: true
 draft: false
 ---
 
-The agents that became useful did not feel like chatbots anymore.
+I started with scripts.
 
-They felt like teammates with narrow jobs.
+Little automations. Cron jobs. Shell commands wrapped around tasks I was tired of repeating. Check this inbox. Run that test. Poll this endpoint. Save that result somewhere durable.
 
-That sounds like a small distinction, but it changed everything for me. A chatbot waits for a prompt. A useful agent owns a lane. It has context, tools, state, permissions, and a way to report back when something changes.
+That is a fine place to start. Scripts are honest. They either run or they do not.
 
-The jump was not from "manual work" to "full automation." That framing is too clean. The real jump was from one-off assistance to named systems with responsibility.
+The weird part came later, when some of those scripts grew enough state, context, and tools that they stopped feeling like scripts. They started feeling like narrow teammates.
 
-Once that happened, the question changed.
+Not people. Not magic. Systems with jobs.
 
-Not "can an agent do this task?"
+That distinction has become important. A chatbot waits for a prompt. A useful agent owns a lane. It has context, permissions, memory, and a way to report back when something changes.
 
-More like: what work would I trust this specific agent to notice, prepare, execute, or escalate?
+The jump was not from manual work to full automation. The jump was from one-off assistance to delegated responsibility.
 
-## specialized beats general
+## the good ones are not generalists
 
-The most useful agents in my setup are specialized.
+The agents that work best in my setup are specialized.
 
-Nolan works on software delivery. Nash trades. Reeve tracks my career pipeline. Reid watches finances. There are others, but these are the ones that made the pattern obvious.
+Nolan ships software. Nash trades. Reeve manages the career pipeline. Reid watches finances. Forge, Axel, Sable, and a few others exist around the edges, but the core pattern is easiest to see in the agents that carry real responsibility.
 
-They are not interchangeable. I do not want a finance monitor improvising on a codebase. I do not want a trading agent drafting LinkedIn replies. I do not want a coding agent touching personal finance context.
+I do not want one giant assistant with access to everything.
 
-Specialization makes the systems easier to trust because each agent has a smaller world.
+I want narrow systems that are good enough in their lanes that I can stop carrying all the state myself.
 
-Narrow world. Deep context. Clear tools. Hard boundaries.
+That means each agent gets a smaller world: a purpose, a tool set, durable notes, explicit permissions, and a clear point where autonomy stops.
 
-That combination matters more than giving one giant assistant access to everything.
+Small world. Deep context. Hard boundary.
 
-## Nolan ships
+That is the pattern.
 
-Nolan is the cleanest example of what changed.
+## Nolan ships software
 
-The job is continuous delivery on a TypeScript product I work on. The stack is strict. The CI is strict. Branch protection is real. The repo does not reward hand-wavy patches.
+Nolan is the strongest example.
 
-Nolan can take a product requirement, break it into tasks, open branches, run autonomous bug-hunt loops, and keep pull requests moving. On a good day, that turns into 10 or more PRs without me writing the implementation code by hand.
+The job is software delivery on a real product repo. Strict types. Strict CI. Branch protection. Real pull requests. Real failures. The repo does not care that a model wrote the patch. It either builds or it does not.
 
-That number matters less than the operating model.
+Nolan owns the product roadmap at the task level. It can turn requirements into branches, run autonomous bug-hunt loops, open PRs, and keep iterating until the checks pass or the task needs escalation.
 
-The agent is not just generating code in a vacuum. It is working inside a delivery system: tickets, branches, tests, CI, review gates, and a running sense of what already happened. If a test fails, that failure becomes input. If a branch conflicts, that becomes a task. If a bug hunt finds something real, it becomes a small patch instead of a note that disappears.
+On a good day, that is 10 or more PRs.
 
-Nolan is effective because the work is bounded and observable.
+The number is fun, but the more important part is the operating model. Nolan is not sitting in a blank chat box generating code snippets. It works inside a delivery loop:
 
-I can inspect the PRs. I can reject the bad ones. I can see what changed. The system does not ask me to believe in autonomy. It gives me artifacts.
+- pick up scoped work
+- create a branch
+- make the change
+- run the checks
+- inspect failures
+- patch again
+- open or update the PR
+- leave an artifact I can review
 
-## Nash trades real money
+That last part matters. The output is not a claim. It is a diff, a test result, and a PR thread.
 
-Nash is a different kind of test.
+I can inspect it. I can reject it. I can ask for another pass. The agent does not ask me to believe in autonomy. It gives me artifacts.
 
-It trades on Kalshi with real capital. Not a giant account. Roughly hundreds of dollars, enough to make the consequences real and the mistakes visible.
+The messy parts are still there. CI flakes. Branches go stale. A bug hunt finds three small issues and one false positive. Sometimes the agent gets stuck on an error that a human would recognize in ten seconds.
 
-That changes the design pressure immediately.
+But those failures are inside the system now. They become state. They become retries. They become better prompts, better checks, or smaller task boundaries.
 
-With a coding agent, a bad patch can be reverted. With a trading agent, a bad decision can settle against you. The agent needs hard caps, immutable risk settings, reconciliation, and boring records of what happened.
+That is what made Nolan useful: not perfect code generation, but continuous delivery with enough structure around it to survive mistakes.
 
-Nash has already placed more than a hundred fills. Some markets settled well. Some did not. The early net result was basically flat, which is less interesting than the fact that the loop worked at all: read markets, decide, place orders, track positions, reconcile fills, stop at limits.
+## Nash trades real capital
 
-The lesson was not that agents are magically good traders.
+Nash is a different kind of pressure test.
 
-The lesson was that real responsibility forces better infrastructure. You cannot hand-wave risk when the agent can spend money. You cannot trust vibes when fills settle. You need caps that the agent cannot edit, logs that survive restarts, and a way to tell the difference between "still thinking" and "stuck."
+It trades on Kalshi with real money. Not a huge account. Enough to make the consequences real.
 
-Nash made the agent platform more serious because it had to.
+That changes the design immediately.
 
-## Reeve keeps the career pipeline from leaking context
+A bad code patch can be reverted. A bad trade can settle against you. The system needs hard limits, immutable risk guards, position tracking, reconciliation, and boring records of what happened.
 
-Career work is weirdly hard for agents because it is high context and socially expensive.
+Nash has placed more than a hundred fills. Some markets settled well. Some did not. The early P&L was not the interesting part. The interesting part was watching the loop become real:
 
-A recruiter message is not just a message. It depends on the latest resume, previous replies, whether a referral is already in motion, what facts are verified, what should not be said, and whether the reply should be warm, transactional, or silent.
+- read markets
+- decide whether there is an edge
+- place bounded orders
+- reconcile fills
+- track positions
+- stop at limits
 
-Reeve handles that lane.
+The hardest lesson was about authority.
 
-The useful part is not that an agent can write a polite paragraph. Any model can do that. The useful part is keeping a pipeline: who reached out, what they asked for, whether a reply is waiting, what was already sent, which docs are current, which facts are safe to use, and what needs approval before anything external happens.
+A trading agent should never be able to rewrite the rules that bound its own risk. The risk caps belong outside the writable workspace. The agent can read them, report on them, and stop when it hits them. It cannot casually edit them while doing unrelated work.
 
-This is where agents need judgment-shaped guardrails.
+That is the kind of boundary that turns an experiment into a system.
 
-Reeve can draft. Reeve can research roles. Reeve can update notes. Reeve can prepare a clean decision. But outbound messages still need approval. That approval gate is not a limitation. It is the reason the system is usable.
+Nash did not make me more confident because it was clever. It made me more confident when the infrastructure got boring: immutable caps, durable logs, clear stop conditions, and enough observability to know whether it was active, stuck, or done.
 
-The agent removes context gathering and blank-page work. I still own the relationship.
+Real stakes force real engineering.
+
+## Reeve keeps the career pipeline sane
+
+Career work is a surprisingly good agent test because it is high-context and socially expensive.
+
+A recruiter message is not just a message. It depends on the latest resume, previous replies, verified facts, existing referrals, scheduling constraints, and whether the right answer is a warm note, a direct answer, or silence.
+
+Reeve owns that lane.
+
+The useful part is not drafting a polite paragraph. Any model can do that. The useful part is maintaining the pipeline: who reached out, what they asked for, what has already been sent, which roles are active, what facts are safe to use, and what still needs approval.
+
+The lane crosses multiple systems. Professional inboxes. Email. Job docs. Resume versions. Notes from calls. A thread can go stale because one detail is missing, or because I already replied somewhere else and forgot.
+
+Reeve is quiet, but that is why it works.
+
+It triages. It researches. It drafts. It flags what needs a decision. It updates the record so I am not reconstructing the whole story from memory every time someone follows up.
+
+Outbound messages still need approval.
+
+That is not a weakness. That is the trust boundary. Reeve can do the expensive prep work, but I still own the relationship.
 
 ## Reid watches the boring money stuff
 
-Reid is less glamorous, which is probably why it is useful.
+Reid is even less glamorous.
 
-The job is finance monitoring. Notice what changed. Watch accounts and obligations. Keep the picture current enough that I am not reconstructing it from memory when I need to make a decision.
+The job is financial monitoring. Watch reports. Track obligations. Keep the LLC accounting picture from turning into a shoebox of delayed context. Notice when something changes and summarize it before it becomes urgent.
 
-This is a good fit for an agent because the value is not creative brilliance. The value is persistence.
+This is exactly the kind of work humans neglect.
 
-Humans are bad at checking the same things quietly every day. Agents are good at that if the scope is narrow and the output is low-noise.
+Not because it is hard. Because it is repetitive, low-drama, and easy to postpone until the cost of forgetting gets high.
 
-The trick is to make the agent interrupt only when it should. A finance agent that narrates every tiny movement becomes spam. A finance agent that misses a real problem is worse. The useful version needs thresholds, known accounts, durable state, and a bias toward concise escalation.
+A good finance agent should not narrate every tiny movement. That becomes spam. It also should not wait until something is on fire.
 
-Again, not magic. Operations.
+So the problem is mostly threshold design.
 
-## the pattern underneath
+What changed? Is it expected? Does it affect cash, credit, taxes, or obligations? Does it need action now, or should it just update the record?
 
-The agents that work all share a few traits.
+Reid is reliable because the scope is boring. That is a compliment.
 
-They have names, but the names are not the point. The names are handles for responsibility.
+## the rest of the bench
 
-They have lanes. They have limited tools. They have memory, but not infinite authority. They can act in some places and only prepare decisions in others. They produce artifacts I can inspect: PRs, ledgers, notes, drafts, alerts.
+There are other agents around the edges.
 
-The boundary is different for each lane.
+Forge handles build-shaped work. Axel handles ops-shaped work. Sable helps with infrastructure and support tasks. They matter, but they are not the center of the lesson yet.
 
-Nolan can push branches and open PRs. Nash can trade inside caps. Reeve can draft career replies but cannot send without approval. Reid can monitor and summarize but should not move money.
+The center is Nolan, Nash, Reeve, and Reid because their work has consequences.
 
-That is the part I keep coming back to: effective agents are not defined by how autonomous they are in the abstract. They are defined by exactly where autonomy stops.
+Code merges. Trades settle. Career threads move or stall. Finance details compound quietly.
+
+Once an agent touches work like that, the design stops being about clever prompts. It becomes permission design, state management, escalation, and auditability.
+
+## autonomy stops at different places
+
+Each lane has a different trust boundary.
+
+Nolan can push branches and open PRs. That is safe because PRs are inspectable and gated by CI.
+
+Nash can trade, but only inside immutable caps. The autonomy exists inside the risk box.
+
+Reeve can prepare career replies and track the pipeline, but external messages need approval.
+
+Reid can monitor and summarize, but should not move money.
+
+That is the part I keep coming back to. Effective agents are not defined by how autonomous they are in the abstract. They are defined by exactly where autonomy stops.
+
+A useful agent is not one that can do anything.
+
+It is one that knows its lane well enough to act inside it and stop at the boundary.
 
 ## context is the next trust frontier
 
-The next frontier is not giving agents more personality.
+The next frontier is not more personality.
 
-It is giving them better situational awareness.
+It is more situational awareness.
 
-Calendar access is a good example. Read-only calendar access sounds boring until you think about all the coordination work that depends on it. Scheduling replies. Prep reminders. Travel buffers. Follow-ups. Avoiding conflicts. Knowing whether a call already happened before drafting the next message.
+Calendar access is the obvious next step for Reeve. Read-only at first. That sounds small until you look at how much coordination depends on schedule context.
 
-I do not need an agent to own my calendar. I do want agents to see enough context to stop making dumb suggestions.
+Finding open slots. Proposing times. Avoiding conflicts. Knowing whether a call already happened. Not drafting a booking reply after I already booked the meeting. Preparing notes before a screen instead of after the fact.
 
-If Reeve knows I already booked a call, it should stop drafting a booking reply. If Nolan knows I am in back-to-back meetings, it should not ask for immediate review unless something is blocked. If Reid knows a billing date is coming up, it can connect that to cash planning without needing me to restate the timeline.
+That is not about giving an agent control of my calendar.
 
-Read-only context is a different trust level from write access.
+It is about giving the agent enough context to stop making dumb suggestions.
 
-It lets agents coordinate on my behalf without giving them the power to commit me to anything. That is exactly the kind of boundary that makes sense: more awareness first, more authority later, and only where the system earns it.
+Read-only context is a different trust level from write access. It lets an agent coordinate on my behalf without giving it power to commit me to anything.
 
-## automation becomes delegation
+That feels like the right progression:
+
+1. more awareness
+2. better suggestions
+3. bounded actions
+4. approval before anything socially or financially costly
+
+Contacts and preferences fit the same pattern. An agent that knows my schedule, communication style, current obligations, and active projects can coordinate much better than one that only sees the last message.
+
+Full situational awareness does not mean full authority.
+
+It means fewer blind spots.
+
+## delegation is different from automation
 
 At first, I thought about agents as automation.
 
 Take a task I do manually. Make the model do it. Save time.
 
-That is still useful, but it is not the most interesting part anymore.
+That is useful, but it is not the interesting part anymore.
 
 The better frame is delegation.
 
-Delegation requires a role, context, expectations, feedback, and trust. It also requires knowing what not to delegate. The agent has to know its lane, and I have to know what kind of output I am expecting.
+Delegation requires a role, context, expectations, feedback, and trust. It also requires knowing what not to delegate.
 
-That is why the named-agent model has held up better than one giant assistant. It maps better to how responsibility actually works.
+That maps cleanly onto specialized agents.
 
-I do not want one system pretending to be good at everything. I want a small team of narrow systems that are reliable enough in their lanes that I can stop carrying all the state myself.
+Nolan gets software delivery. Nash gets bounded trading. Reeve gets career pipeline work. Reid gets finance monitoring. Each one has a job, a memory, a tool set, and a boundary.
+
+That is much more useful than a general assistant trying to be good at everything.
 
 ## where this is going
 
 I do not think the end state is agents replacing all the work.
 
-The useful version is more specific and more mundane. Agents keep state warm. They watch for changes. They prepare decisions. They execute bounded actions. They leave trails. They ask for approval when the action crosses a trust boundary.
+The useful version is more specific and more mundane.
+
+Agents keep state warm. They watch for changes. They prepare decisions. They execute bounded actions. They leave trails. They ask for approval when the action crosses a trust boundary.
 
 That is enough to change the shape of a day.
 
-A coding lane keeps moving while I am elsewhere. A trading lane follows rules without me staring at markets. A career lane remembers every thread. A finance lane notices what I would otherwise check too late.
+A software lane keeps moving while I am elsewhere. A trading lane follows rules without me staring at markets. A career lane remembers every thread. A finance lane notices what I would otherwise check too late.
 
-None of that requires pretending the agents are people.
+None of that requires pretending agents are people.
 
 It does require treating them like systems with jobs.
