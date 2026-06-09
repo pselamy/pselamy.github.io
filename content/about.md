@@ -14,4 +14,10 @@ This site is where I write about what I'm learning along the way: prompt enginee
 
 The site itself is part of the experiment — content here is drafted, reviewed, and published through an autonomous pipeline.
 
-You can reach me at [contact@selamy.dev](mailto:contact@selamy.dev).
+You can reach me at [contact@selamy.dev](mailto:contact@selamy.dev) or 646-847-9838.
+
+Mailing address:
+
+Patrick Selamy  
+105 E 34th St Ste 165  
+New York, NY 10016
