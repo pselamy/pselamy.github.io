@@ -63,10 +63,22 @@ theme = "PaperMod"
   weight = 30
 
 [[menu.main]]
+  identifier = "resume"
+  name = "Resume"
+  url = "/resume/"
+  weight = 35
+
+[[menu.main]]
   identifier = "about"
   name = "About"
   url = "/about/"
   weight = 40
+
+[[menu.main]]
+  identifier = "speedforge"
+  name = "Speedforge"
+  url = "https://speedforge.dev"
+  weight = 50
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]
