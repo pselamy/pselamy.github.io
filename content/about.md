@@ -14,6 +14,8 @@ This site is where I write about what I'm learning along the way: prompt enginee
 
 The site itself is part of the experiment — content here is drafted, reviewed, and published through an autonomous pipeline.
 
+Public work: [GitHub](https://github.com/pselamy), [resume](/resume/), [LinkedIn](https://www.linkedin.com/in/patrickselamy/), [agent-skills](https://github.com/selamy-labs/agent-skills), [laneq](https://github.com/selamy-labs/laneq), and [Speedforge](https://speedforge.dev).
+
 You can reach me at [contact@selamy.dev](mailto:contact@selamy.dev) or 646-847-9838.
 
 Mailing address:
