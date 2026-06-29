@@ -27,8 +27,25 @@ The course is built as a NotebookLM series with a public table of contents, stud
 Public course TOC:
 https://docs.google.com/document/d/1akqNIetG4R5kpv9AdobaAZv9qqBShTmHpVG3B8IJcds/edit?tab=t.0
 
+NotebookLM master index:
+https://notebooklm.google.com/notebook/9fbca41e-c836-4484-9bda-34bec0bdfaba
+
 Wrapper article:
 https://selamy.dev/posts/customer-facing-genai-system-design-interview-loop/
+
+Representative episode notebooks:
+
+- Enterprise RAG Architecture:
+  https://notebooklm.google.com/notebook/144c060b-b944-4fcc-9ae6-cbb5bc03b3d2
+
+- Agents, Tool Calling, Workflows, and State:
+  https://notebooklm.google.com/notebook/b999660a-d6a7-4f1a-8924-591e17bcb645
+
+- Security, IAM, PII, Tenant Isolation, and Audit:
+  https://notebooklm.google.com/notebook/9e5847c5-d982-4d0b-8691-33e2703d5304
+
+- Timed Mocks and Final Review:
+  https://notebooklm.google.com/notebook/34a6cacf-c42b-4b57-a268-b1fc376a85c0
 
 The broader lesson: when preparation material does not exist for a role shape that is clearly emerging, you can build the curriculum yourself.
 

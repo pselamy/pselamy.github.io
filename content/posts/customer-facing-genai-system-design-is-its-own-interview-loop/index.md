@@ -15,181 +15,103 @@ showToc: true
 draft: false
 ---
 
-Most system design preparation is built around a familiar loop: design a feed, a chat system, a rate limiter, a file store, or a ticketing service. Those exercises are useful, but they do not fully prepare you for a newer kind of interview that is showing up around GenAI field engineering, customer engineering, solutions architecture, and applied AI product roles.
+Most system design preparation is built around classic backend prompts: design a feed, a chat system, a rate limiter, a file store, or a ticketing service.
 
-The shape is different.
+Those exercises are still useful. They do not fully prepare you for the customer-facing GenAI loop, where the real question is closer to this:
 
-The interviewer is not only asking whether you can decompose a backend system. They are asking whether you can walk into an ambiguous customer situation, discover what actually matters, choose the right AI pattern, explain the tradeoffs, protect the customer's data, evaluate answer quality, operate the system in production, and translate what you learn back into product feedback.
+> A customer wants an AI assistant over internal documents. How do you start, what do you ask, what do you build, and how do you know it is safe enough to trust?
 
-That is its own interview loop.
+That interview is not just architecture. It is discovery, requirements, RAG, retrieval quality, tool calling, IAM, PII, tenant isolation, evaluation, observability, cost, troubleshooting, and product judgment.
 
-I built a public preparation course for it because the available prep material still feels thin. There is plenty of content about classic distributed systems. There is plenty of content about prompting. There is much less material about the middle layer where real GenAI systems live: enterprise knowledge, retrieval quality, tool calling, identity boundaries, observability, hallucination risk, customer trust, and cost.
+I could not find a preparation path that treated that loop as its own thing, so I built one.
 
-The course is here:
+## Open the course
 
-- [Public course table of contents](https://docs.google.com/document/d/1akqNIetG4R5kpv9AdobaAZv9qqBShTmHpVG3B8IJcds/edit?tab=t.0)
+Start with the public course spine:
+
+- [Public Google Doc course table of contents](https://docs.google.com/document/d/1akqNIetG4R5kpv9AdobaAZv9qqBShTmHpVG3B8IJcds/edit?tab=t.0)
 - [NotebookLM master index](https://notebooklm.google.com/notebook/9fbca41e-c836-4484-9bda-34bec0bdfaba)
 
-## The loop starts before architecture
+The Google Doc is the clean public homepage. It gives the study paths, episode summaries, artifact notes, and final review checklist.
 
-The easy mistake is to jump straight to an architecture diagram.
+The NotebookLM master index is the hub for jumping into the notebooks directly.
 
-"We need an AI assistant over internal docs" sounds like a RAG problem. It might be. But in a customer-facing interview, the first move should not be "vector database plus LLM." The first move should be discovery.
+## Direct NotebookLM episode links
 
-What kind of documents? Who owns them? How fresh are they? What access controls apply? Are answers expected to be factual summaries, recommendations, workflow actions, or draft responses? What happens if the assistant is wrong? Is the customer optimizing for accuracy, speed, cost, coverage, compliance, employee productivity, or some mixture of all six?
+Each episode has a focused NotebookLM notebook. Use the notebook for the generated learning experience, then use the Google Doc as the navigation layer back to the whole course.
 
-Those questions are not throat clearing. They determine the system.
+| Episode | Notebook | What it trains |
+| --- | --- | --- |
+| 0 | [Orientation: How to Use the Course](https://notebooklm.google.com/notebook/29e38a85-3121-479c-b2fd-b8698854c91a) | How to move through the course without getting lost in the materials. |
+| 1 | [Interview Answer Spine](https://notebooklm.google.com/notebook/858dd9db-aa45-4acc-a034-e0820923d997) | A repeatable structure for discovery, architecture, tradeoffs, reliability, security, and recommendation. |
+| 2 | [Customer Discovery and Requirements](https://notebooklm.google.com/notebook/375f041e-e51d-4e2c-b317-880fc2e80af5) | The questions to ask before proposing any GenAI architecture. |
+| 3 | [Enterprise RAG Architecture](https://notebooklm.google.com/notebook/144c060b-b944-4fcc-9ae6-cbb5bc03b3d2) | Ingestion, indexing, retrieval, grounding, citations, and production RAG boundaries. |
+| 4 | [Vector Search, Retrieval, and Data Modeling](https://notebooklm.google.com/notebook/7e83ff4e-9575-49d0-893f-8c5700d23de9) | Chunking, embeddings, hybrid search, metadata filters, reranking, freshness, and recall. |
+| 5 | [Agents, Tool Calling, Workflows, and State](https://notebooklm.google.com/notebook/b999660a-d6a7-4f1a-8924-591e17bcb645) | When to use agents, when not to, and how to design tool calls safely. |
+| 6 | [Security, IAM, PII, Tenant Isolation, and Audit](https://notebooklm.google.com/notebook/9e5847c5-d982-4d0b-8691-33e2703d5304) | Identity propagation, least privilege, PII handling, audit logs, and isolation boundaries. |
+| 7 | [Evaluation, Groundedness, and Hallucination Controls](https://notebooklm.google.com/notebook/71319ced-35b7-4c20-a207-d6214507bc15) | Golden sets, groundedness checks, refusal quality, regression tests, and human review. |
+| 8 | [Observability, Latency, Cost, and Reliability](https://notebooklm.google.com/notebook/dabdc0b8-81f8-4b1f-9562-b867b6a6ca8e) | What to monitor once the assistant is live: tokens, latency, retrieval, tools, failures, and spend. |
+| 9 | [Troubleshooting Slow, Inaccurate, or Expensive Systems](https://notebooklm.google.com/notebook/4602a98d-9f67-4294-b6cf-98045c01722c) | How to debug bad GenAI systems without guessing. |
+| 10 | [Cloud AI Product Mapping and Field Feedback](https://notebooklm.google.com/notebook/57b21047-5a80-4638-8611-94a58cba2bb5) | How to connect customer pain to platform capabilities and product feedback. |
+| 11 | [Full Customer Case Studies](https://notebooklm.google.com/notebook/7abc2abd-3a84-4b0a-824b-b8eb7200be24) | End-to-end scenarios that force discovery, architecture, tradeoffs, and recommendation. |
+| 12 | [Timed Mocks and Final Review](https://notebooklm.google.com/notebook/34a6cacf-c42b-4b57-a268-b1fc376a85c0) | Cram drills, timed answers, final review, and interview readiness checks. |
 
-If the customer's documents are highly permissioned, identity propagation and tenant isolation may dominate the architecture. If the documents are messy and duplicated, ingestion and retrieval quality may matter more than the model choice. If the system acts through tools, approval gates and audit trails may be more important than conversational polish. If wrong answers create legal or operational risk, the design needs evaluation, abstention, citations, and human review paths from the beginning.
+## How I would use it
 
-A strong answer has an architecture, but it is not architecture-first. It is customer-first.
+For a 90-minute emergency pass:
 
-## The answer spine
+1. Open the [public course table of contents](https://docs.google.com/document/d/1akqNIetG4R5kpv9AdobaAZv9qqBShTmHpVG3B8IJcds/edit?tab=t.0).
+2. Skim [Episode 1: Interview Answer Spine](https://notebooklm.google.com/notebook/858dd9db-aa45-4acc-a034-e0820923d997).
+3. Review [Episode 3: Enterprise RAG Architecture](https://notebooklm.google.com/notebook/144c060b-b944-4fcc-9ae6-cbb5bc03b3d2).
+4. Hit [Episode 6: Security, IAM, PII, Tenant Isolation, and Audit](https://notebooklm.google.com/notebook/9e5847c5-d982-4d0b-8691-33e2703d5304).
+5. Finish with [Episode 12: Timed Mocks and Final Review](https://notebooklm.google.com/notebook/34a6cacf-c42b-4b57-a268-b1fc376a85c0).
 
-The course is organized around a repeatable answer spine:
+For the 8-12 hour version, work through the notebooks in order and use NotebookLM's study guide, quiz, flashcards, mind map, and audio or video overview features where available.
+
+For multi-day immersion, treat Episodes 2, 3, 5, 6, 7, 8, 9, and 11 as the core. Those are the episodes that most directly train the customer-facing loop: understand the customer, design the architecture, secure it, evaluate it, operate it, debug it, and recommend a path forward.
+
+## What this course is trying to train
+
+The course is organized around a simple answer spine:
 
 1. Clarify the customer situation.
 2. Name requirements and non-requirements.
 3. Choose the simplest useful AI pattern.
-4. Design the data and retrieval path.
-5. Add model orchestration, tools, and state only where they earn their complexity.
-6. Protect data with IAM, PII handling, tenant boundaries, and auditability.
-7. Evaluate answer quality before and after launch.
-8. Operate for latency, cost, reliability, and safety.
-9. Troubleshoot by separating retrieval failures, reasoning failures, tool failures, and product-fit failures.
-10. Turn field pain into product feedback.
+4. Design retrieval, orchestration, tools, and state.
+5. Protect the data and identity boundaries.
+6. Evaluate groundedness and answer quality.
+7. Operate for latency, reliability, and cost.
+8. Troubleshoot failures with evidence.
+9. Turn field pain into product feedback.
+10. Make a recommendation the customer can actually adopt.
 
-This spine matters because customer-facing GenAI interviews are usually not looking for one memorized diagram. They are looking for judgment. The interviewer wants to see how you move from ambiguity to a recommendation that an actual customer could trust.
+That spine matters because the right answer is rarely "use RAG" or "add an agent." Sometimes the right answer is RAG. Sometimes it is a guarded tool workflow. Sometimes it is fine-tuning, human review, a deterministic automation, a better search product, or a smaller first release.
 
-## Why RAG is not enough
+The interview is testing whether you can tell the difference.
 
-Retrieval-augmented generation is the default starting point for many enterprise assistants, but "RAG" is not a complete design.
-
-You still have to decide:
-
-- how documents are ingested, chunked, enriched, indexed, and refreshed
-- whether retrieval should be lexical, semantic, hybrid, graph-based, or routed across multiple stores
-- how metadata and access-control filters are applied
-- how the system handles stale, conflicting, low-confidence, or missing evidence
-- how citations are selected and rendered
-- how conversation history affects retrieval without leaking context across users
-- how the system measures groundedness instead of trusting plausible prose
-- what the product does when it should not answer
-
-This is where many interview answers get shallow. They name a vector database, an embedding model, and a chat model, then stop. In a real customer conversation, that is barely the opening move.
-
-The hard work is making retrieval observable and correct enough that the model has something reliable to say.
-
-## Agents raise the stakes
-
-Tool calling and agents make the conversation more interesting and more dangerous.
-
-An assistant that only answers questions can still harm trust when it hallucinates. An assistant that calls tools can mutate business state. It can create a ticket, send a message, update a record, schedule an event, trigger a workflow, or retrieve information the user should not see.
-
-That changes the design.
-
-The system needs tool schemas, authorization checks, policy-aware routing, confirmations for irreversible actions, idempotency keys, sandboxing where possible, and logs that explain what happened. It needs state management that can survive retries without double-executing actions. It needs a distinction between drafting, recommending, and committing.
-
-In an interview, the question is not "Would you use agents?" The better question is "What part of this workflow truly needs agency, and what should remain deterministic automation?"
-
-Sometimes the right answer is an agentic workflow. Sometimes it is RAG plus a small set of guarded tools. Sometimes it is a form, a rules engine, a search improvement, a queue, or a human review step. Senior judgment includes knowing when not to use the more exciting pattern.
-
-## Evaluation is a product surface
-
-Evaluation cannot be a footnote.
-
-For a customer-facing GenAI system, answer quality is not a single score. You need to measure retrieval recall, citation relevance, factual groundedness, refusal quality, policy compliance, tool-call correctness, latency, cost, and user satisfaction. You need golden datasets, adversarial tests, regression suites, online monitoring, and a way for users to report bad answers.
-
-You also need to know what failure looks like.
-
-A hallucinated answer is one failure. A grounded answer over stale data is another. A correct answer shown to the wrong user is worse. A tool call that succeeds twice because retry behavior was not designed carefully is a different class of incident. A system that is accurate but too slow to use will still fail.
-
-The best interview answers make these distinctions explicit. They do not flatten "quality" into vibes.
-
-## Security is part of the core design
-
-Enterprise AI systems inherit the security expectations of the systems they touch.
-
-That means the design should account for:
-
-- least-privilege access
-- identity propagation from the user to retrieval and tools
-- tenant isolation
-- PII detection and handling
-- encryption in transit and at rest
-- audit logs for retrieval, prompts, model responses, and tool calls
-- data retention policies
-- admin controls and incident response
-- clear boundaries between customer data, telemetry, and model improvement
-
-These concerns do not sit after the architecture. They shape the architecture.
-
-If the assistant is answering over internal documents, the retrieval layer has to respect the same access boundaries the source systems do. If the assistant can call business tools, authorization cannot be delegated to the model. If logs contain prompts and responses, the logging design itself becomes part of the data protection story.
-
-## Production questions reveal maturity
-
-The interview often gets most revealing when the system is "working" but the customer is unhappy.
-
-The assistant is slow. Where do you look first? Retrieval fanout? embedding latency? model choice? context size? reranking? tool calls? network hops? frontend streaming?
-
-The assistant is inaccurate. Is the problem ingestion, chunking, recall, ranking, prompt assembly, model reasoning, stale data, missing permissions, or unclear product expectations?
-
-The assistant is too expensive. Is cost driven by embedding refresh, high-token prompts, long context, model tier, retries, tool fanout, low cache hit rate, or usage patterns that should be redesigned?
-
-The assistant is not trusted. Is the answer uncited, overconfident, inconsistent, hard to correct, missing source transparency, or operating outside the user's mental model?
-
-This is why the course spends time on troubleshooting. Production GenAI work is not just "design the happy path." It is knowing how to localize failure when the customer says the system is slow, inaccurate, expensive, or risky.
-
-## What the course contains
-
-The course is built as a multi-episode NotebookLM series with local fallback artifacts. Each episode is intended to support passive review and active recall: study guides, quizzes, flashcards, mind maps, prompts for audio and video overviews, mock drills, rubrics, and case studies.
-
-The episode sequence:
-
-1. Orientation: How to Use the Course
-2. Interview Answer Spine
-3. Customer Discovery and Requirements
-4. Enterprise RAG Architecture
-5. Vector Search, Retrieval, and Data Modeling
-6. Agents, Tool Calling, Workflows, and State
-7. Security, IAM, PII, Tenant Isolation, and Audit
-8. Evaluation, Groundedness, and Hallucination Controls
-9. Observability, Latency, Cost, and Reliability
-10. Troubleshooting Slow, Inaccurate, or Expensive Systems
-11. Cloud AI Product Mapping and Field Feedback
-12. Full Customer Case Studies
-13. Timed Mocks and Final Review
-
-The public table of contents is meant to be the front door. Start there if you want the structured path. Use the NotebookLM master index if you want to jump directly into the notebooks.
-
-## What I deliberately left out
-
-The public version is intentionally generalized.
-
-It does not include raw private source material, company-specific diagnostics, personal communications, internal system names, customer names, local paths, or operational secrets. The point is to extract the reusable lesson and rebuild it as public courseware.
-
-That constraint made the material better. It forced the course to focus on durable patterns rather than one person's preparation process.
-
-The resulting material is still specific. It just stays specific at the level that is useful to other engineers: architecture choices, tradeoffs, failure modes, evaluation methods, security constraints, production signals, and interview practice.
-
-## The broader lesson
+## Why this needed to exist
 
 There is a gap between how GenAI systems are demoed and how they are operated.
 
-There is a similar gap between how system design interviews are usually taught and how customer-facing GenAI roles are actually evaluated.
+There is also a gap between classic system design prep and the work expected in customer-facing GenAI roles. The real loop includes messy enterprise data, permissioned knowledge, ambiguous requirements, changing customer constraints, model behavior, security boundaries, hallucination risk, observability, and cost.
 
-The work is not only "Can you design a RAG system?" It is:
+That deserves prep material that is more than a prompt list.
 
-- Can you discover the real customer problem?
-- Can you choose the least complex pattern that works?
-- Can you explain why not every workflow should become an agent?
-- Can you protect data while still making the system useful?
-- Can you measure groundedness and quality?
-- Can you debug failures without guessing?
-- Can you recommend a product path the customer can actually adopt?
+This course is public-safe by design. It does not include raw private source material, company-specific diagnostics, personal communications, internal system names, customer names, local paths, or operational secrets. The lesson was extracted, generalized, and rebuilt as courseware.
 
-That is the loop.
+## Series roadmap
 
-And it deserves prep material that treats it seriously.
+This is the wrapper post and course directory. The rest of the series should go deeper into the individual modules:
 
-This first post is the wrapper. The rest of the series will walk through the individual pieces: discovery, RAG, retrieval, agents, security, evaluation, observability, troubleshooting, product feedback, case studies, and timed mocks.
+- discovery before architecture
+- RAG as a production system, not a buzzword
+- retrieval quality and vector data modeling
+- agents, tool calls, workflow state, and approval gates
+- security, privacy, IAM, and auditability
+- evaluation and hallucination controls
+- observability, cost, latency, and reliability
+- troubleshooting slow, inaccurate, or expensive systems
+- turning customer pain into product feedback
+- full case studies and timed mocks
+
+Open the [public course table of contents](https://docs.google.com/document/d/1akqNIetG4R5kpv9AdobaAZv9qqBShTmHpVG3B8IJcds/edit?tab=t.0), then jump into the [NotebookLM master index](https://notebooklm.google.com/notebook/9fbca41e-c836-4484-9bda-34bec0bdfaba).
