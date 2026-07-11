@@ -1,6 +1,6 @@
 {
   "repository": "https://github.com/pselamy/operating-agent-fleets.git",
-  "ref": "11bed113cc00336e45335ba515c5ed413fb6544c",
-  "expected_preview_entries": 20,
+  "ref": "cab74e046f123795e03ece496dbe86193f0ec04a",
+  "expected_preview_entries": 24,
   "expected_release_entries": 0
 }

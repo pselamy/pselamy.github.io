@@ -58,6 +58,7 @@ def check_rendered(public: Path, base_url: str) -> dict[str, int]:
         section / "index.html",
         section / "03-skills-and-context-routing" / "index.html",
         section / "05-throughput-and-supersession" / "index.html",
+        section / "06-memory-and-provenance" / "index.html",
     ]
     missing_required = [str(path.relative_to(public)) for path in required if not path.is_file()]
     if missing_required:
