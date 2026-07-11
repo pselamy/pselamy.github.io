@@ -1,0 +1,39 @@
+.agent-fleet-diagram {
+  display: block;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.agent-fleet-diagram img {
+  height: auto;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.agent-fleet-diagram-dark {
+  display: none;
+}
+
+.agent-fleet-diagram-open {
+  font-size: 0.85rem;
+}
+
+.agent-fleet-diagram-open-dark {
+  display: none;
+}
+
+:root[data-theme="dark"] .agent-fleet-diagram-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .agent-fleet-diagram-dark {
+  display: block;
+}
+
+:root[data-theme="dark"] .agent-fleet-diagram-open-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .agent-fleet-diagram-open-dark {
+  display: inline;
+}
