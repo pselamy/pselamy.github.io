@@ -20,7 +20,8 @@ class CheckRenderedAgentFleetsTests(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.public = Path(self.directory.name)
         section = self.public / "agent-fleets"
-        (section / "03-skills-and-context-routing").mkdir(parents=True)
+        (section / "01-operating-model").mkdir(parents=True)
+        (section / "03-skills-and-context-routing").mkdir()
         (section / "05-throughput-and-supersession").mkdir()
         (section / "06-memory-and-provenance").mkdir()
         (section / "diagrams").mkdir()
@@ -31,6 +32,10 @@ class CheckRenderedAgentFleetsTests(unittest.TestCase):
             )
         (section / "index.html").write_text(
             '<link rel="canonical" href="https://example.test/agent-fleets/">', encoding="utf-8"
+        )
+        (section / "01-operating-model" / "index.html").write_text(
+            '<link rel="canonical" href="https://example.test/agent-fleets/01-operating-model/">',
+            encoding="utf-8",
         )
         alt = "A sufficiently detailed synthetic description of the diagram for a reader."
         body = '<link rel="canonical" href="https://example.test/agent-fleets/03-skills-and-context-routing/">'
@@ -51,7 +56,7 @@ class CheckRenderedAgentFleetsTests(unittest.TestCase):
 
     def test_valid_fixture(self) -> None:
         result = check.check_rendered(self.public, "https://example.test/")
-        self.assertEqual(result, {"html_pages": 4, "canonicals": 4, "diagram_images": 4, "diagram_links": 4, "svg_assets": 4})
+        self.assertEqual(result, {"html_pages": 5, "canonicals": 5, "diagram_images": 4, "diagram_links": 4, "svg_assets": 4})
 
     def test_machine_marker_and_broken_link_fail(self) -> None:
         chapter = self.public / "agent-fleets" / "03-skills-and-context-routing" / "index.html"
