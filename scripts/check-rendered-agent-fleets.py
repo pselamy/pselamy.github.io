@@ -57,6 +57,7 @@ def check_rendered(public: Path, base_url: str) -> dict[str, int]:
     required = [
         section / "index.html",
         section / "01-operating-model" / "index.html",
+        section / "02-tax-and-authority" / "index.html",
         section / "03-skills-and-context-routing" / "index.html",
         section / "05-throughput-and-supersession" / "index.html",
         section / "06-memory-and-provenance" / "index.html",
