@@ -54,7 +54,11 @@ def target_for(public: Path, base_url: str, page_url: str, raw: str) -> Path | N
 
 def check_rendered(public: Path, base_url: str) -> dict[str, int]:
     section = public / "agent-fleets"
-    required = [section / "index.html", section / "03-skills-and-context-routing" / "index.html"]
+    required = [
+        section / "index.html",
+        section / "03-skills-and-context-routing" / "index.html",
+        section / "05-throughput-and-supersession" / "index.html",
+    ]
     missing_required = [str(path.relative_to(public)) for path in required if not path.is_file()]
     if missing_required:
         raise RenderedSiteError(f"missing required rendered pages: {', '.join(missing_required)}")
@@ -87,14 +91,18 @@ def check_rendered(public: Path, base_url: str) -> dict[str, int]:
 
     light = [image for image in diagrams if "diagram-light" in image.get("class", "")]
     dark = [image for image in diagrams if "diagram-dark" in image.get("class", "")]
-    if len(light) != 2 or len(dark) != 2:
-        raise RenderedSiteError("expected two light and two dark chapter diagrams")
+    light_assets = list((section / "diagrams").rglob("*.light.svg"))
+    dark_assets = list((section / "diagrams").rglob("*.dark.svg"))
+    if not light_assets or len(light) != len(light_assets) or len(dark) != len(dark_assets):
+        raise RenderedSiteError("rendered diagram count differs from exported light and dark assets")
     if any(len(image.get("alt", "").strip()) < 40 for image in light):
         raise RenderedSiteError("light diagram is missing useful alt text")
     if any(image.get("alt") != "" or image.get("aria-hidden") != "true" for image in dark):
         raise RenderedSiteError("dark duplicate must be hidden from assistive technology")
-    if len(diagram_links) != 4 or any(not link.get("href") or not link.get("class") for link in diagram_links):
-        raise RenderedSiteError("expected theme-aware full-size links for both diagrams")
+    if len(diagram_links) != len(light_assets) + len(dark_assets) or any(
+        not link.get("href") or not link.get("class") for link in diagram_links
+    ):
+        raise RenderedSiteError("expected theme-aware full-size links for every diagram")
 
     for svg in sorted((section / "diagrams").rglob("*.svg")):
         text = svg.read_text(encoding="utf-8")

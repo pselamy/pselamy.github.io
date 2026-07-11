@@ -21,6 +21,7 @@ class CheckRenderedAgentFleetsTests(unittest.TestCase):
         self.public = Path(self.directory.name)
         section = self.public / "agent-fleets"
         (section / "03-skills-and-context-routing").mkdir(parents=True)
+        (section / "05-throughput-and-supersession").mkdir()
         (section / "diagrams").mkdir()
         for name in ("one.light.svg", "one.dark.svg", "two.light.svg", "two.dark.svg"):
             (section / "diagrams" / name).write_text(
@@ -38,10 +39,14 @@ class CheckRenderedAgentFleetsTests(unittest.TestCase):
             body += f'<a class="agent-fleet-diagram-open agent-fleet-diagram-open-light" href="../diagrams/{stem}.light.svg">Open full-size diagram</a>'
             body += f'<a class="agent-fleet-diagram-open agent-fleet-diagram-open-dark" href="../diagrams/{stem}.dark.svg">Open full-size dark diagram</a>'
         (section / "03-skills-and-context-routing" / "index.html").write_text(body, encoding="utf-8")
+        (section / "05-throughput-and-supersession" / "index.html").write_text(
+            '<link rel="canonical" href="https://example.test/agent-fleets/05-throughput-and-supersession/">',
+            encoding="utf-8",
+        )
 
     def test_valid_fixture(self) -> None:
         result = check.check_rendered(self.public, "https://example.test/")
-        self.assertEqual(result, {"html_pages": 2, "canonicals": 2, "diagram_images": 4, "diagram_links": 4, "svg_assets": 4})
+        self.assertEqual(result, {"html_pages": 3, "canonicals": 3, "diagram_images": 4, "diagram_links": 4, "svg_assets": 4})
 
     def test_machine_marker_and_broken_link_fail(self) -> None:
         chapter = self.public / "agent-fleets" / "03-skills-and-context-routing" / "index.html"
