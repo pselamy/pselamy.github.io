@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -113,8 +114,12 @@ class StageOperatingAgentFleetsTests(unittest.TestCase):
         (bundle / "content" / "_index.md").write_text("# Map\n\nBody\n", encoding="utf-8")
         (bundle / "data" / "evidence").mkdir(parents=True)
         (bundle / "data" / "evidence" / "manifest.json").write_text("{}\n", encoding="utf-8")
+        (bundle / "data" / "editorial-assets").mkdir()
+        (bundle / "data" / "editorial-assets" / "manifest.json").write_text('{"assets": []}\n', encoding="utf-8")
         (bundle / "static" / "agent-fleets" / "diagrams").mkdir(parents=True)
         (bundle / "static" / "agent-fleets" / "diagrams" / "sample.svg").write_text("<svg/>\n", encoding="utf-8")
+        (bundle / "static" / "agent-fleets" / "editorial").mkdir()
+        (bundle / "static" / "agent-fleets" / "editorial" / "field-guide-hero.png").write_bytes(b"synthetic")
         metadata = {"source_revision": "c" * 40, "entries": []}
         return bundle, metadata
 
@@ -125,7 +130,9 @@ class StageOperatingAgentFleetsTests(unittest.TestCase):
         stage.stage_bundle(site, bundle, metadata, ref="c" * 40, channel="preview")
         self.assertTrue((site / "content" / "agent-fleets" / "_index.md").is_file())
         self.assertTrue((site / "data" / "operating-agent-fleets" / "evidence" / "manifest.json").is_file())
+        self.assertTrue((site / "data" / "operating-agent-fleets" / "editorial-assets" / "manifest.json").is_file())
         self.assertTrue((site / "static" / "agent-fleets" / "diagrams" / "sample.svg").is_file())
+        self.assertIn("{{< agent-fleet-hero >}}", (site / "content" / "agent-fleets" / "_index.md").read_text())
         stored = json.loads((site / "data" / "operating-agent-fleets" / "export-metadata.json").read_text())
         self.assertEqual(stored, metadata)
 
@@ -135,6 +142,17 @@ class StageOperatingAgentFleetsTests(unittest.TestCase):
         (site / "content" / "agent-fleets").mkdir(parents=True)
         with self.assertRaisesRegex(stage.StagingError, "already exist"):
             stage.stage_bundle(site, bundle, metadata, ref="c" * 40, channel="preview")
+
+    def test_stage_bundle_refuses_partial_editorial_hero(self) -> None:
+        bundle, metadata = self.bundle()
+        (bundle / "data" / "editorial-assets" / "manifest.json").unlink()
+        with self.assertRaisesRegex(stage.StagingError, "must be exported together"):
+            stage.stage_bundle(self.root / "site-missing-manifest", bundle, metadata, ref="c" * 40, channel="preview")
+        shutil.rmtree(bundle)
+        bundle, metadata = self.bundle()
+        (bundle / "static" / "agent-fleets" / "editorial" / "field-guide-hero.png").unlink()
+        with self.assertRaisesRegex(stage.StagingError, "must be exported together"):
+            stage.stage_bundle(self.root / "site-missing-image", bundle, metadata, ref="c" * 40, channel="preview")
 
     def test_main_reports_success_and_failure(self) -> None:
         config = {

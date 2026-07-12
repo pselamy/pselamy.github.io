@@ -106,11 +106,14 @@ def render_content(
     ref: str,
     channel: str,
     available_content: set[str] | None = None,
+    include_hero: bool = False,
 ) -> None:
     fallback = "Operating Agent Fleets" if source.name == "_index.md" else source.stem.replace("-", " ").title()
     title, body = _title_and_body(source.read_text(encoding="utf-8"), fallback)
     if source.name == "_index.md":
         title = "Operating Agent Fleets"
+        if include_hero:
+            body = "{{< agent-fleet-hero >}}\n\n" + body
     body = EVIDENCE_LINK.sub(
         lambda match: f"(https://github.com/pselamy/operating-agent-fleets/blob/{ref}/evidence/records/{match.group(1)})",
         body,
@@ -144,6 +147,12 @@ def stage_bundle(site_root: Path, bundle: Path, metadata: dict[str, Any], *, ref
         raise StagingError(f"managed staging targets already exist: {', '.join(occupied)}")
 
     content_source = bundle / "content"
+    editorial_source = bundle / "data" / "editorial-assets"
+    hero_manifest = (editorial_source / "manifest.json").is_file()
+    hero_image = (bundle / "static" / "agent-fleets" / "editorial" / "field-guide-hero.png").is_file()
+    if hero_manifest != hero_image:
+        raise StagingError("editorial hero manifest and image must be exported together")
+    include_hero = hero_manifest and hero_image
     if content_source.exists():
         content_files = sorted(content_source.rglob("*.md"))
         available_content = {str(source.relative_to(content_source)) for source in content_files}
@@ -155,11 +164,14 @@ def stage_bundle(site_root: Path, bundle: Path, metadata: dict[str, Any], *, ref
                 ref=ref,
                 channel=channel,
                 available_content=available_content,
+                include_hero=include_hero,
             )
 
     evidence_source = bundle / "data" / "evidence"
     if evidence_source.exists():
         shutil.copytree(evidence_source, targets["data"] / "evidence")
+    if editorial_source.exists():
+        shutil.copytree(editorial_source, targets["data"] / "editorial-assets")
     targets["data"].mkdir(parents=True, exist_ok=True)
     (targets["data"] / "export-metadata.json").write_text(
         json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"

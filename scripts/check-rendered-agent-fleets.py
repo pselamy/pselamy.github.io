@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html.parser
+import json
 import sys
 from pathlib import Path
 from urllib.parse import unquote, urljoin, urlparse
@@ -21,6 +23,9 @@ class PageParser(html.parser.HTMLParser):
         self.canonicals: list[str] = []
         self.diagram_images: list[dict[str, str]] = []
         self.diagram_links: list[dict[str, str]] = []
+        self.hero_images: list[dict[str, str]] = []
+        self.hero_caption = ""
+        self._in_hero_caption = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = {name: value or "" for name, value in attrs}
@@ -34,6 +39,18 @@ class PageParser(html.parser.HTMLParser):
             self.diagram_images.append(values)
         if tag == "a" and "agent-fleet-diagram-open" in values.get("class", ""):
             self.diagram_links.append(values)
+        if tag == "img" and values.get("class") == "agent-fleet-hero-image":
+            self.hero_images.append(values)
+        if tag == "figcaption" and values.get("class") == "agent-fleet-hero-caption":
+            self._in_hero_caption = True
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "figcaption":
+            self._in_hero_caption = False
+
+    def handle_data(self, data: str) -> None:
+        if self._in_hero_caption:
+            self.hero_caption += data
 
 
 def target_for(public: Path, base_url: str, page_url: str, raw: str) -> Path | None:
@@ -52,7 +69,10 @@ def target_for(public: Path, base_url: str, page_url: str, raw: str) -> Path | N
     return target
 
 
-def check_rendered(public: Path, base_url: str) -> dict[str, int]:
+HERO_CAPTION = "Editorial metaphor, not system architecture: the nodes, loops, gateways, and central ledger do not represent deployed topology, direct peer connectivity, central orchestration, or a verified agent count."
+
+
+def check_rendered(public: Path, base_url: str, editorial_manifest: Path | None = None) -> dict[str, int]:
     section = public / "agent-fleets"
     required = [
         section / "index.html",
@@ -61,6 +81,7 @@ def check_rendered(public: Path, base_url: str) -> dict[str, int]:
         section / "03-skills-and-context-routing" / "index.html",
         section / "05-throughput-and-supersession" / "index.html",
         section / "06-memory-and-provenance" / "index.html",
+        section / "07-agent-portfolio" / "index.html",
     ]
     missing_required = [str(path.relative_to(public)) for path in required if not path.is_file()]
     if missing_required:
@@ -71,6 +92,8 @@ def check_rendered(public: Path, base_url: str) -> dict[str, int]:
     canonical_count = 0
     diagrams = []
     diagram_links = []
+    hero_images = []
+    hero_captions = []
     for path in html_files:
         text = path.read_text(encoding="utf-8")
         if "[@evidence:" in text:
@@ -89,6 +112,9 @@ def check_rendered(public: Path, base_url: str) -> dict[str, int]:
                 broken.add(f"{page_relative}: {tag} {raw}")
         diagrams.extend(parser.diagram_images)
         diagram_links.extend(parser.diagram_links)
+        hero_images.extend(parser.hero_images)
+        if parser.hero_caption.strip():
+            hero_captions.append(parser.hero_caption.strip())
     if broken:
         raise RenderedSiteError("broken local references:\n" + "\n".join(sorted(broken)))
 
@@ -111,12 +137,38 @@ def check_rendered(public: Path, base_url: str) -> dict[str, int]:
         text = svg.read_text(encoding="utf-8")
         if not all(marker in text for marker in ("<title", "<desc", "aria-labelledby", "aria-roledescription")):
             raise RenderedSiteError(f"SVG lacks accessible metadata: {svg.relative_to(public)}")
+    hero_asset = section / "editorial" / "field-guide-hero.png"
+    if len(hero_images) != 1 or not hero_asset.is_file():
+        raise RenderedSiteError("expected exactly one rendered editorial hero and asset")
+    manifest_path = editorial_manifest or public.parent / "data" / "operating-agent-fleets" / "editorial-assets" / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        records = [asset for asset in manifest["assets"] if asset["id"] == "editorial.field-guide-hero"]
+    except (OSError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        raise RenderedSiteError("cannot resolve pinned editorial hero provenance") from exc
+    if len(records) != 1:
+        raise RenderedSiteError("pinned editorial manifest must contain exactly one hero record")
+    record = records[0]
+    hero = hero_images[0]
+    actual_digest = hashlib.sha256(hero_asset.read_bytes()).hexdigest()
+    if (
+        hero.get("alt") != record.get("alt_text")
+        or hero.get("width") != str(record.get("width"))
+        or hero.get("height") != str(record.get("height"))
+        or hero.get("data-asset-id") != record.get("id")
+        or hero.get("data-asset-sha256") != record.get("sha256")
+        or actual_digest != record.get("sha256")
+    ):
+        raise RenderedSiteError("editorial hero differs from pinned provenance")
+    if len(hero_captions) != 1 or " ".join(hero_captions[0].split()) != HERO_CAPTION:
+        raise RenderedSiteError("editorial hero lacks the required topology disclaimer")
     return {
         "html_pages": len(html_files),
         "canonicals": canonical_count,
         "diagram_images": len(diagrams),
         "diagram_links": len(diagram_links),
         "svg_assets": len(list((section / "diagrams").rglob("*.svg"))),
+        "hero_images": len(hero_images),
     }
 
 
@@ -124,9 +176,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--public", type=Path, required=True)
     parser.add_argument("--base-url", default="https://selamy.dev/")
+    parser.add_argument("--editorial-manifest", type=Path)
     args = parser.parse_args()
     try:
-        result = check_rendered(args.public.resolve(), args.base_url)
+        manifest = args.editorial_manifest.resolve() if args.editorial_manifest else None
+        result = check_rendered(args.public.resolve(), args.base_url, manifest)
     except (OSError, RenderedSiteError) as exc:
         print(f"rendered field-guide check failed: {exc}", file=sys.stderr)
         return 1
