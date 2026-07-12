@@ -1,0 +1,91 @@
+.agent-fleet-diagram {
+  display: block;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.agent-fleet-diagram img {
+  height: auto;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.agent-fleet-diagram-dark {
+  display: none;
+}
+
+.agent-fleet-diagram-open {
+  font-size: 0.85rem;
+}
+
+.agent-fleet-diagram-open-dark {
+  display: none;
+}
+
+:root[data-theme="dark"] .agent-fleet-diagram-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .agent-fleet-diagram-dark {
+  display: block;
+}
+
+:root[data-theme="dark"] .agent-fleet-diagram-open-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .agent-fleet-diagram-open-dark {
+  display: inline;
+}
+
+.agent-fleet-hero {
+  margin: 1.5rem 0 2rem;
+}
+
+.agent-fleet-hero-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: #071426;
+}
+
+.agent-fleet-hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+.agent-fleet-hero-title {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: flex;
+  width: 42%;
+  align-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  color: #f6f0df;
+  font-size: clamp(1.3rem, 3vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  text-shadow: 0 2px 20px rgb(0 0 0 / 70%);
+}
+
+.agent-fleet-hero figcaption {
+  margin-top: 0.75rem;
+  color: var(--secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 540px) {
+  .agent-fleet-hero-title {
+    width: 42%;
+    padding: 0.85rem;
+    font-size: clamp(1rem, 5.2vw, 1.45rem);
+  }
+}

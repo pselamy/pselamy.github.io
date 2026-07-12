@@ -1,0 +1,17 @@
+{{- $catalog := index .Site.Data "operating-agent-fleets" -}}
+{{- $editorial := index $catalog "editorial-assets" -}}
+{{- $manifest := index $editorial "manifest" -}}
+{{- range $manifest.assets -}}
+  {{- if eq .id "editorial.field-guide-hero" -}}
+    <figure class="agent-fleet-hero">
+      <div class="agent-fleet-hero-frame">
+        <img class="agent-fleet-hero-image" src="{{ "agent-fleets/editorial/field-guide-hero.png" | relURL }}"
+             width="{{ .width }}" height="{{ .height }}"
+             data-asset-id="{{ .id }}" data-asset-sha256="{{ .sha256 }}"
+             alt="{{ .alt_text }}">
+        <span class="agent-fleet-hero-title" aria-hidden="true">Operating<br>Agent Fleets</span>
+      </div>
+      <figcaption class="agent-fleet-hero-caption">Editorial metaphor, not system architecture: the nodes, loops, gateways, and central ledger do not represent deployed topology, direct peer connectivity, central orchestration, or a verified agent count.</figcaption>
+    </figure>
+  {{- end -}}
+{{- end -}}

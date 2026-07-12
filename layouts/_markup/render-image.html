@@ -1,0 +1,22 @@
+{{- /* Hugo image render-hook contract: https://gohugo.io/render-hooks/images/ */ -}}
+{{- $destination := .Destination -}}
+{{- if and (strings.Contains $destination "/diagrams/") (strings.HasSuffix $destination ".light.svg") -}}
+  {{- $dark := replace $destination ".light.svg" ".dark.svg" -}}
+  <span class="agent-fleet-diagram">
+    <img class="agent-fleet-diagram-light" src="{{ $destination | safeURL }}"
+      {{ with .PlainText }}alt="{{ . }}"{{ end }}
+      {{ with .Title }}title="{{ . }}"{{ end }}
+      loading="lazy" decoding="async">
+    <img class="agent-fleet-diagram-dark" src="{{ $dark | safeURL }}"
+      alt="" aria-hidden="true"
+      {{ with .Title }}title="{{ . }}"{{ end }}
+      loading="lazy" decoding="async">
+    <a class="agent-fleet-diagram-open agent-fleet-diagram-open-light" href="{{ $destination | safeURL }}">Open full-size diagram</a>
+    <a class="agent-fleet-diagram-open agent-fleet-diagram-open-dark" href="{{ $dark | safeURL }}">Open full-size dark diagram</a>
+  </span>
+{{- else -}}
+  <img src="{{ $destination | safeURL }}"
+    {{ with .PlainText }}alt="{{ . }}"{{ end }}
+    {{ with .Title }}title="{{ . }}"{{ end }}
+    loading="lazy" decoding="async">
+{{- end -}}

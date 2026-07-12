@@ -1,4 +1,9 @@
 public/
 resources/
 .hugo_build.lock
+
+# Generated only from the pinned Operating Agent Fleets export.
+/content/agent-fleets/
+/data/operating-agent-fleets/
+/static/agent-fleets/
 node_modules/

@@ -1,0 +1,8 @@
+[run]
+branch = True
+source = scripts
+omit = scripts/test-*
+
+[report]
+show_missing = True
+fail_under = 90

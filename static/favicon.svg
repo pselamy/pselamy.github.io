@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">selamy.dev</title>
+  <desc id="desc">Two connected loops representing durable work and system learning.</desc>
+  <rect width="64" height="64" rx="14" fill="#1d1e20"/>
+  <path d="M32 20c-7-8-19-4-19 6s12 14 19 6c7-8 19-4 19 6s-12 14-19 6" fill="none" stroke="#8bd5ca" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="3" fill="#f5a97f"/>
+</svg>

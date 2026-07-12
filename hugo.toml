@@ -19,6 +19,13 @@ theme = "PaperMod"
   defaultTheme = "auto"
   disableThemeToggle = false
 
+  [params.assets]
+    favicon = "/favicon.svg"
+    favicon16x16 = "/favicon.svg"
+    favicon32x32 = "/favicon.svg"
+    apple_touch_icon = "/favicon.svg"
+    safari_pinned_tab = "/favicon.svg"
+
   [params.homeInfoParams]
     Title = "Patrick Selamy"
     Content = "Software engineer in New York. Writing about AI-assisted development, autonomous systems, and the infrastructure that makes them work."
@@ -67,6 +74,12 @@ theme = "PaperMod"
   name = "Resume"
   url = "/resume/"
   weight = 35
+
+[[menu.main]]
+  identifier = "agent-fleets"
+  name = "Agent Fleets"
+  url = "/agent-fleets/"
+  weight = 37
 
 [[menu.main]]
   identifier = "about"
