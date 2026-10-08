@@ -1,0 +1,15 @@
+Hardware-identification addendum submitted to NVIDIA on October 7, 2026
+
+Original component receipts and corresponding Amazon order records were located after the initial report.
+
+GPU: ASUS TUF Gaming GeForce RTX 4070 Ti SUPER OG OC Edition, 16 GB GDDR6X, purchased October 23, 2024, sold by Amazon.com. This description matches the observed ASUS/TUF branding and GPU/memory identification. Physical serial and full manufacturer part number have not been matched.
+PSU purchase: CORSAIR RM1000x, 1000 W, fully modular, 80 PLUS Gold, black (ASIN B08R5PH1VY).
+Case purchase: CORSAIR 3500X ARGB mid-tower ATX, white, three RS120 ARGB fans.
+Cooler purchase: Corsair iCUE H150i Elite CAPELLIX XT, 360 mm, black, three AF120 RGB Elite fans and Commander CORE.
+SSD: WD_BLACK SN850X 2 TB, receipt model WDS200T2X0E, consistent with installed drive identification.
+
+PSU, case and cooler receipts date to the October 2024 build period; their exact installed labels have not been physically verified. GPU power cable/adapter arrangement and connector condition remain unverified. Rated PSU wattage does not rule out an intermittent power-delivery fault.
+
+The prior test results remain unchanged. This addendum contains no new testing and does not establish permanent resolution or chipset-update causation.
+
+This public copy condenses the emailed hardware addendum. It omits the personal sign-off and quoted email history. It is a reporter submission, not a vendor diagnosis.
